@@ -2,16 +2,20 @@ const express = require('express')
 var router = express.Router()
 
 router.get('/', (req, res) => {
-    res.send('Home!')
+    res.send('GET!')
 })
-router.get('/product', (req, res) => {
-    res.send('Product!')
+
+router.post('/', (req, res) => {
+    console.log(req.headers)
+    res.json('POST!' + req.body.username)
 })
-router.get('/booking', (req, res) => {
-    res.send('Booking!')
+
+router.put('/', (req, res) => {
+    res.send('PUT!')
 })
-router.get('/:id', (req, res) => {
-    res.send('Click path: ' + req.params.id)
+
+router.delete('/', (req, res) => {
+    res.send('DELETE!')
 })
 
 module.exports = router

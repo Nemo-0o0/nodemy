@@ -1,31 +1,17 @@
 const express = require('express');
 const app = express()
 const port = 3000
+var bodyParser = require('body-parser')
+
 var router = require('./apiRouter')
 
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
 
-var checkdangnhap = (req, res, next) => {
-    if (dangnhap) {
-        req.user = user;
-        next();
-    } else {
-        res.json('Bạn chưa đăng nhập');
-    }
-};
+// parse application/json
+app.use(bodyParser.json())
 
-var checkadmin = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
-        next();
-    } else {
-        res.json('Bạn không có quyền truy cập');
-    }
-};
-app.get('/', checkdangnhap, (req, res, next) => {
-    res.json('du lieu')
-})
-
-app.use('/admin/api/', checkadmin, checkdangnhap, router)
-app.use('/api/', router)
+app.use('/admin/api/', router)
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
