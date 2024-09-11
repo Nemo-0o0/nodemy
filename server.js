@@ -34,7 +34,6 @@ app.post('/register', (req, res, next) => {
         })
     console.log(username, password)
 })
-
 // Dang nhap
 app.post('/login', (req, res, next) => {
     var username = req.body.username
@@ -55,6 +54,9 @@ app.post('/login', (req, res, next) => {
             res.status(401).json('Sai ten dang nhap hoac mat khau')
         })
 })
+
+var accountRouter = require('./Router/router')
+app.use('/api/account/', accountRouter)
 app.get('/', (req, res, next) => {
     res.send('Home')
 })
