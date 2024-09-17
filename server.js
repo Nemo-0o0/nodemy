@@ -5,6 +5,7 @@ var port = 3000;
 const AccountModel = require('./models/account')
 
 
+
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
@@ -59,6 +60,42 @@ var accountRouter = require('./Router/router')
 app.use('/api/account/', accountRouter)
 app.get('/', (req, res, next) => {
     res.send('Home')
+})
+
+// Pagination
+const userModel = require('./models/user')
+const PAGE_SIZE = 2;
+app.get('/user', (req, res, next) => {
+    var page = req.query.page; // "3"
+
+    if (page) {
+        // get page
+        page = parseInt(page)
+        if (page < 1) {
+            page = 1
+        }
+        var skip = (page - 1) * PAGE_SIZE // 6
+
+        userModel.find({})
+            .skip(skip)
+            .limit(PAGE_SIZE)
+            .then(data => {
+                res.json(data)
+            })
+            .catch(err => {
+                res.status(500).send(err)
+            })
+
+    } else {
+        // get all 
+        userModel.find({})
+            .then(data => {
+                res.json(data)
+            })
+            .catch(err => {
+                res.status(500).send(err)
+            })
+    }
 })
 
 app.listen(port, () => {
