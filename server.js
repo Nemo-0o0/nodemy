@@ -1,13 +1,14 @@
 const express = require('express');
 const app = express()
+const path = require('path')
 var bodyParser = require('body-parser')
 var port = 3000;
-const AccountModel = require('./models/account')
-
-
+// const AccountModel = require('./models/account')
 
 app.use(bodyParser.urlencoded({ extended: false }))
+
 app.use(bodyParser.json())
+app.use('/public', express.static(path.join(__dirname, 'public')))
 
 // Dang ki 
 app.post('/register', (req, res, next) => {
@@ -65,6 +66,10 @@ app.get('/', (req, res, next) => {
 // Pagination
 const userModel = require('./models/user')
 const PAGE_SIZE = 2;
+
+app.get('/home', (req, res, next) => {
+    res.sendFile(path.join(__dirname, 'index.html'))
+})
 app.get('/user', (req, res, next) => {
     var page = req.query.page; // "3"
 
@@ -80,7 +85,14 @@ app.get('/user', (req, res, next) => {
             .skip(skip)
             .limit(PAGE_SIZE)
             .then(data => {
-                res.json(data)
+                userModel.countDocuments({}).then(total => {
+                    var tongSoPage = Math.ceil(total / PAGE_SIZE)
+                    res.json({
+                        tongSoPage: tongSoPage,
+                        data: data
+                    })
+                })
+                // res.json(data)
             })
             .catch(err => {
                 res.status(500).send(err)
@@ -90,7 +102,14 @@ app.get('/user', (req, res, next) => {
         // get all 
         userModel.find({})
             .then(data => {
-                res.json(data)
+                userModel.countDocuments({}).then(total => {
+                    console.log(total)
+                    var tongSoPage = Math.ceil(total / PAGE_SIZE)
+                    res.json({
+                        tongSoPage: tongSoPage,
+                        data: data
+                    })
+                })
             })
             .catch(err => {
                 res.status(500).send(err)

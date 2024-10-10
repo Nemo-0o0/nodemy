@@ -20,9 +20,26 @@ module.exports = userModel
 
 for (let i = 0; i < 10; i++) {
     userModel.create({
-        user: 'Das_' + i,
+        username: 'Das_' + i,
         password: '123123'
     })
-        .then(() => console.log(`User ${i} created`))
+        .then(() => console.log(`User Das_${i} created`))
         .catch(err => console.error(`Error creating user ${i}:`, err));
 }
+
+
+// Pagination using Mongoose try/catch
+// async function createUser() {
+//     for (let i = 0; i < 10; i++) {
+//         try {
+//             await userModel.create({
+//                 username: 'Das_' + i,
+//                 password: '123123'
+//             });
+//             console.log(`User ${i} created`);
+//         }
+//         catch (err) {
+//             console.error(`Error creating user ${i}:`, err);
+//         }
+//     }
+// }

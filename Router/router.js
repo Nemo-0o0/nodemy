@@ -1,6 +1,6 @@
 const express = require('express');
 var router = express.Router();
-var AccountModel = require('../models/account')
+// var AccountModel = require('../models/account')
 
 // lay du lieu tu DB (get) lay tat ca
 router.get('/', (req, res, next) => {
