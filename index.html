@@ -12,21 +12,27 @@
             crossorigin="anonymous" />
     </head>
     <body>
-        <div id="content">
+        <!-- <div id="content">
             <div id="container"></div>
-        </div>
-        <!-- <nav aria-label="Page navigation example">
-            <ul class="pagination">
-                <li class="page-item"><a class="page-link" href="#" onclick="prevPage()">Previous</a></li>
-                <li class="page-item"><a class="page-link" href="#" onclick="loadPage(1)">1</a></li>
-                <li class="page-item"><a class="page-link" href="#" onclick="loadPage(2)">2</a></li>
-                <li class="page-item"><a class="page-link" href="#" onclick="loadPage(3)">3</a></li>
-                <li class="page-item"><a class="page-link" href="#" onclick="nextPage()">Next</a></li>
-            </ul>
-        </nav> -->
-        <div id="demo"></div>
+        </div> -->
+        <!-- <div id="demo"></div> -->
+        HELLO
     </body>
-    <script src="/public//js//jquery-3.7.1.min.js"></script>
-    <script src="/public/js/pagination.js"></script>
-    <script src="/public/js/index.js"></script>
+    <!-- <script src="/public/js/jquery-3.7.1.min.js"></script> -->
+    <!-- <script src="/public/js/pagination.js"></script> -->
+    <!-- <script src="/public/js/index.js"></script> -->
+    <script src="/public/js/main.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $.ajax({
+            url: 'http://localhost:3000/user?page=1',
+            type: 'GET',
+        })
+            .then((data) => {
+                console.log(data);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    </script>
 </html>
