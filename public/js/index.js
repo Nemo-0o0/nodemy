@@ -1,23 +1,51 @@
+$('#demo').pagination({
+    dataSource: '/user?page=1',
+    locator: 'data',
+    showGoInput: true,
+    showGoButton: true,
+    totalNumberLocator: function (response) {
+        return response.total;
+    },
+    pageSize: 2,
+    afterPageOnClick: function (event, pageNumber) {
+        loadPage(pageNumber)
+    },
+    afterPreviousOnClick: function (event, page) {
+        console.log(page)
+    },
+    afterNextOnClick: function (event, page) {
+        console.log(page)
+    },
+    afterGoButtonOnClick: function (event, page) {
+        var html = template({ pageNumber: page });
+        $('#container').html(html);
+    }
+})
+function template(event) {
+    console.log(event)
+    return `<p>Trang hiện tại: ${event.pageNumber}</p>`;
+}
+
 function loadPage(page) {
-    currentPage = page;
-
-    $.get(`/user?page=${page}`)
+    $('#content').html('') // xóa nội dung trước đó
+    $.ajax({
+        url: '/user?page=' + page,
+        method: 'GET'
+    })
         .then(data => {
-            $('#content').empty();  // Clear content once before appending
+            console.log(data.tongSoPage); // hiện thị tổng số trang nếu có
 
-            data.forEach(user => {
-                $('#content').append(`
-                    <h1>${user.username} : ${user.password}</h1>
-                `);
-            });
+            // data.data là mảng chứa thông tin người dùng
+            for (let i = 0; i < data.data.length; i++) {
+                const element = data.data[i];
+                var item = $(`<h3>${element.username}</h3>`)
+                $('#content').append(item)  // thêm thông tin người dùng vào #content
+            }
+            console.log(data.data)
         })
-        .catch(() => console.error('API error'));
+        .catch(err => {
+            console.log(err)
+        })
 }
 
-function nextPage() {
-    loadPage(++currentPage);
-}
-
-function prevPage() {
-    loadPage(--currentPage);
-}
+loadPage(1) // load trang đầu tiên  

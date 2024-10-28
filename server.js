@@ -88,6 +88,7 @@ app.get('/user', (req, res, next) => {
                 userModel.countDocuments({}).then(total => {
                     var tongSoPage = Math.ceil(total / PAGE_SIZE)
                     res.json({
+                        total: total,
                         tongSoPage: tongSoPage,
                         data: data
                     })
