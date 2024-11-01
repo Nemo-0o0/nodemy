@@ -3,7 +3,7 @@ const app = express()
 const path = require('path')
 var bodyParser = require('body-parser')
 var port = 3000;
-// const AccountModel = require('./models/account')
+const AccountModel = require('./models/account')
 
 app.use(bodyParser.urlencoded({ extended: false }))
 
@@ -18,7 +18,7 @@ app.use(function (req, res, next) {
     next();
 })
 
-// Dang ki 
+// Dang ki  
 app.post('/register', (req, res, next) => {
     var username = req.body.username
     var password = req.body.password
