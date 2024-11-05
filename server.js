@@ -161,20 +161,75 @@ app.post('/login', (req, res, next) => {
         })
 })
 
-//PRIVATE
-app.get('/private', (req, res, next) => {
+var checkLogin = (req, res, next) => {
+    // check login
     try {
         var token = req.cookies.token
-        var ketqua = jwt.verify(token, 'mk')
-        if (ketqua) {
-            next()
-        }
-    } catch (err) {
-        return res.send('ban can phải Login')
+        var idUser = jwt.verify(token, 'mk')
+        AccountModel.findOne({
+            _id: idUser
+        })
+            .then(data => {
+                if (data) {
+                    req.data = data
+                    console.log(data)
+                    next()
+                } else {
+                    res.json('NOT PERMISSON')
+                }
+            })
+            .catch(err => {
+
+            })
+    } catch {
+        res.status(500).json('TOken không hợp lệ')
     }
-}, (req, res, next) => {
-    res.send('welcome')
+}
+
+var role = req.data.role
+var checkStudent = (req, res, next) => {
+    if (role === 'student' || 'teacher' || 'manager') {
+        next()
+    } else {
+        res.send('Chua đăng nhập quyền ')
+    }
+}
+var checkTeacher = (req, res, next) => {
+    if (role === 'teacher' || 'manager') {
+        next()
+    } else {
+        res.send('Đăng nhập quyền teacher or manager')
+    }
+}
+
+var checkManager = (req, res, next) => {
+    if (role === 'manager') {
+        next()
+    } else {
+        res.send('đăng nhập quyền manager ')
+    }
+}
+
+// MANAGER
+app.get('/task', checkLogin, checkStudent, (req, res, next) => {
+    console.log(req.data)
+    res.send('ALL Task')
 })
+
+// STUDENT
+app.get('/student', checkLogin, checkTeacher, (req, res, next) => {
+    next()
+}, (req, res, next) => {
+    res.send('STUDENT')
+})
+
+// TEACHER
+app.get('/teacher', checkLogin, checkManager, (req, res, next) => {
+    next()
+}, (req, res, next) => {
+    res.send('TEACHER')
+})
+
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
