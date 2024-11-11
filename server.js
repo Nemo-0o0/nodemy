@@ -186,49 +186,53 @@ var checkLogin = (req, res, next) => {
     }
 }
 
-var role = req.data.role
+
 var checkStudent = (req, res, next) => {
-    if (role === 'student' || 'teacher' || 'manager') {
+    var role = req.data.role
+
+    if (role >= 0) {
         next()
     } else {
         res.send('Chua đăng nhập quyền ')
     }
 }
 var checkTeacher = (req, res, next) => {
-    if (role === 'teacher' || 'manager') {
+    var role = req.data.role
+
+    if (role >= 1) {
         next()
     } else {
-        res.send('Đăng nhập quyền teacher or manager')
+        res.send('Đăng nhập quyền teacher')
     }
 }
 
 var checkManager = (req, res, next) => {
-    if (role === 'manager') {
+    var role = req.data.role
+    if (role >= 2) {
         next()
     } else {
         res.send('đăng nhập quyền manager ')
     }
 }
 
-// MANAGER
+// Task
 app.get('/task', checkLogin, checkStudent, (req, res, next) => {
     console.log(req.data)
-    res.send('ALL Task')
+    res.json('ALL Task')
 })
 
 // STUDENT
 app.get('/student', checkLogin, checkTeacher, (req, res, next) => {
-    next()
-}, (req, res, next) => {
-    res.send('STUDENT')
+    console.log(req.data)
+    res.json('STUDENT')
 })
 
 // TEACHER
 app.get('/teacher', checkLogin, checkManager, (req, res, next) => {
-    next()
-}, (req, res, next) => {
-    res.send('TEACHER')
+    console.log(req.data)
+    res.json('TEACHER')
 })
+
 
 
 app.listen(port, () => {
