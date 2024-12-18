@@ -136,6 +136,56 @@ app.get('/login', (req, res, next) => {
     res.sendFile(path.join(__dirname, 'login.html'))
 })
 
+app.get('/home', (req, res, next) => {
+    var token = req.cookies.token
+    var decodeToken = jwt.verify(token, "mk")
+    AccountModel.find({ _id: decodeToken._id }).then(function (data) {
+        console.log(data)
+        if (data.length == 0) {
+            return res.redirect("/login ")
+        } else {
+            if (data[0].role == 2) {
+                next()
+            } else {
+                return res.redirect("/login")
+            }
+        }
+    })
+}, (req, res, next) => {
+    res.sendFile(path.join(__dirname, 'home.html'))
+})
+
+app.post("/edit", function (req, res, next) {
+    var token = req.headers.cookie.split("=")[1]
+    var decodeToken = jwt.verify(token, "mk")
+    AccountModel.find({ _id: decodeToken._id }).then(function (data) {
+        if (data.length == 0) {
+            return res.redirect('/login')
+        } else {
+            if (data[0].role == 2) {
+                next()
+            } else {
+                return res.json({
+                    error: true,
+                    message: 'Ban khong co quyen sua'
+                })
+            }
+        }
+    })
+}, function (req, res) {
+    res.json("sua thanh cong")
+})
+
+
+app.get('/student', (req, res, next) => {
+    var token = req.cookies
+    console.log(token)
+}, (req, res, next) => {
+    res.sendFile(path.join(__dirname, 'student.html'))
+})
+
+
+
 // POST Login
 app.post('/login', (req, res, next) => {
     var { username, password } = req.body;
@@ -215,6 +265,15 @@ var checkManager = (req, res, next) => {
     }
 }
 
+var checkCompany = (req, res, next) => {
+    var role = req.data.role
+    if (role >= 3) {
+        next()
+    } else {
+        res.send('đăng nhập quyền company ')
+    }
+}
+
 // Task
 app.get('/task', checkLogin, checkStudent, (req, res, next) => {
     console.log(req.data)
@@ -231,6 +290,13 @@ app.get('/student', checkLogin, checkTeacher, (req, res, next) => {
 app.get('/teacher', checkLogin, checkManager, (req, res, next) => {
     console.log(req.data)
     res.json('TEACHER')
+})
+
+// MANAGER
+app.get('/manager', checkLogin, checkCompany, (req, res, next) => {
+    console.log(req.data)
+    // res.sendFile(path.join(__dirname, 'index.html'))
+    res.json('MANAGER')
 })
 
 
