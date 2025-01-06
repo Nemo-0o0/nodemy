@@ -2,10 +2,32 @@ const express = require('express');
 const app = express()
 const path = require('path')
 var bodyParser = require('body-parser')
+var session = require('express-session')
 var port = 3000;
 const AccountModel = require('./models/account')
 const jwt = require('jsonwebtoken');
 var cookieParser = require('cookie-parser')
+
+// const redis = require('redis');
+// const redisClient = redis.createClient()
+// const redisStore = require('connect-redis')(session)
+// redisClient.on('error', (err) => {
+//     console.error('Redis error: ', err);
+// });
+
+// Use Redis store for sessions
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false, maxAge: 5000 },
+    // store: new redisStore({
+    //     host: 'localhost',
+    //     port: 6379, // Redis port
+    //     client: redisClient, // Use the Redis client
+    //     ttl: 86400, // Time-to-live for session (in seconds)
+    // }),
+}));
 
 
 app.use(cookieParser())
@@ -16,6 +38,29 @@ app.use(bodyParser.json())
 
 app.use('/public', express.static(path.join(__dirname, 'public')))
 
+// #15 Session Cookie
+app.get('/', (req, res, next) => {
+    res.sendFile(path.join(__dirname, 'demo-cookie.html'))
+})
+
+// Access the session as req.session
+app.get('/demo', function (req, res, next) {
+    if (req.session.views) {
+        req.session.views++
+        res.setHeader('Content-Type', 'text/html')
+        res.write('<p>views: ' + req.session.views + '</p>')
+        res.write('<p>expires in: ' + (req.session.cookie.maxAge / 1000) + 's</p>')
+        res.end()
+    } else {
+        req.session.views = 1
+        res.end('welcome to the session demo. refresh!')
+    }
+})
+
+app.get('/logout', (req, res, next) => {
+    req.session.destroy()
+    res.send('Logout success')
+})
 
 // Cros
 // app.use(function (req, res, next) {
@@ -132,172 +177,172 @@ app.get('/', (req, res, next) => {
 
 
 // GET Login
-app.get('/login', (req, res, next) => {
-    res.sendFile(path.join(__dirname, 'login.html'))
-})
+// app.get('/login', (req, res, next) => {
+//     res.sendFile(path.join(__dirname, 'login.html'))
+// })
 
-app.get('/home', (req, res, next) => {
-    var token = req.cookies.token
-    var decodeToken = jwt.verify(token, "mk")
-    AccountModel.find({ _id: decodeToken._id }).then(function (data) {
-        console.log(data)
-        if (data.length == 0) {
-            return res.redirect("/login ")
-        } else {
-            if (data[0].role == 2) {
-                next()
-            } else {
-                return res.redirect("/login")
-            }
-        }
-    })
-}, (req, res, next) => {
-    res.sendFile(path.join(__dirname, 'home.html'))
-})
+// app.get('/home', (req, res, next) => {
+//     var token = req.cookies.token
+//     var decodeToken = jwt.verify(token, "mk")
+//     AccountModel.find({ _id: decodeToken._id }).then(function (data) {
+//         console.log(data)
+//         if (data.length == 0) {
+//             return res.redirect("/login ")
+//         } else {
+//             if (data[0].role == 2 || data[0].role == 1 || data[0].role == 0) {
+//                 next()
+//             } else {
+//                 return res.redirect("/login")
+//             }
+//         }
+//     })
+// }, (req, res, next) => {
+//     res.sendFile(path.join(__dirname, 'home.html'))
+// })
 
-app.post("/edit", function (req, res, next) {
-    var token = req.headers.cookie.split("=")[1]
-    var decodeToken = jwt.verify(token, "mk")
-    AccountModel.find({ _id: decodeToken._id }).then(function (data) {
-        if (data.length == 0) {
-            return res.redirect('/login')
-        } else {
-            if (data[0].role == 2) {
-                next()
-            } else {
-                return res.json({
-                    error: true,
-                    message: 'Ban khong co quyen sua'
-                })
-            }
-        }
-    })
-}, function (req, res) {
-    res.json("sua thanh cong")
-})
-
-
-app.get('/student', (req, res, next) => {
-    var token = req.cookies
-    console.log(token)
-}, (req, res, next) => {
-    res.sendFile(path.join(__dirname, 'student.html'))
-})
+// app.post("/edit", function (req, res, next) {
+//     var token = req.headers.cookie.split("=")[1]
+//     var decodeToken = jwt.verify(token, "mk")
+//     AccountModel.find({ _id: decodeToken._id }).then(function (data) {
+//         if (data.length == 0) {
+//             return res.redirect('/login')
+//         } else {
+//             if (data[0].role == 2) {
+//                 next()
+//             } else {
+//                 return res.json({
+//                     error: true,
+//                     message: 'Ban khong co quyen sua'
+//                 })
+//             }
+//         }
+//     })
+// }, function (req, res) {
+//     res.json("sua thanh cong")
+// })
 
 
-
-// POST Login
-app.post('/login', (req, res, next) => {
-    var { username, password } = req.body;
-
-    AccountModel.findOne({
-        username,
-        password
-    })
-        .then(data => {
-            if (data) {
-                var token = jwt.sign({ _id: data._id }, 'mk')
-                return res.json({
-                    message: 'thanh cong',
-                    token: token
-                })
-            } else {
-                return res.json('That Bai')
-            }
-        })
-        .catch(err => {
-            console.log(err)
-            res.status(500).json('Loi server')
-        })
-})
-
-var checkLogin = (req, res, next) => {
-    // check login
-    try {
-        var token = req.cookies.token
-        var idUser = jwt.verify(token, 'mk')
-        AccountModel.findOne({
-            _id: idUser
-        })
-            .then(data => {
-                if (data) {
-                    req.data = data
-                    console.log(data)
-                    next()
-                } else {
-                    res.json('NOT PERMISSON')
-                }
-            })
-            .catch(err => {
-
-            })
-    } catch {
-        res.status(500).json('TOken không hợp lệ')
-    }
-}
+// app.get('/student', (req, res, next) => {
+//     var token = req.cookies
+//     console.log(token)
+// }, (req, res, next) => {
+//     res.sendFile(path.join(__dirname, 'student.html'))
+// })
 
 
-var checkStudent = (req, res, next) => {
-    var role = req.data.role
 
-    if (role >= 0) {
-        next()
-    } else {
-        res.send('Chua đăng nhập quyền ')
-    }
-}
-var checkTeacher = (req, res, next) => {
-    var role = req.data.role
+// // POST Login
+// app.post('/login', (req, res, next) => {
+//     var { username, password } = req.body;
 
-    if (role >= 1) {
-        next()
-    } else {
-        res.send('Đăng nhập quyền teacher')
-    }
-}
+//     AccountModel.findOne({
+//         username,
+//         password
+//     })
+//         .then(data => {
+//             if (data) {
+//                 var token = jwt.sign({ _id: data._id }, 'mk')
+//                 return res.json({
+//                     message: 'thanh cong',
+//                     token: token
+//                 })
+//             } else {
+//                 return res.json('That Bai')
+//             }
+//         })
+//         .catch(err => {
+//             console.log(err)
+//             res.status(500).json('Loi server')
+//         })
+// })
 
-var checkManager = (req, res, next) => {
-    var role = req.data.role
-    if (role >= 2) {
-        next()
-    } else {
-        res.send('đăng nhập quyền manager ')
-    }
-}
+// var checkLogin = (req, res, next) => {
+//     // check login
+//     try {
+//         var token = req.cookies.token
+//         var idUser = jwt.verify(token, 'mk')
+//         AccountModel.findOne({
+//             _id: idUser
+//         })
+//             .then(data => {
+//                 if (data) {
+//                     req.data = data
+//                     console.log(data)
+//                     next()
+//                 } else {
+//                     res.json('NOT PERMISSON')
+//                 }
+//             })
+//             .catch(err => {
 
-var checkCompany = (req, res, next) => {
-    var role = req.data.role
-    if (role >= 3) {
-        next()
-    } else {
-        res.send('đăng nhập quyền company ')
-    }
-}
+//             })
+//     } catch {
+//         res.status(500).json('TOken không hợp lệ')
+//     }
+// }
 
-// Task
-app.get('/task', checkLogin, checkStudent, (req, res, next) => {
-    console.log(req.data)
-    res.json('ALL Task')
-})
 
-// STUDENT
-app.get('/student', checkLogin, checkTeacher, (req, res, next) => {
-    console.log(req.data)
-    res.json('STUDENT')
-})
+// var checkStudent = (req, res, next) => {
+//     var role = req.data.role
 
-// TEACHER
-app.get('/teacher', checkLogin, checkManager, (req, res, next) => {
-    console.log(req.data)
-    res.json('TEACHER')
-})
+//     if (role >= 0) {
+//         next()
+//     } else {
+//         res.send('Chua đăng nhập quyền ')
+//     }
+// }
+// var checkTeacher = (req, res, next) => {
+//     var role = req.data.role
 
-// MANAGER
-app.get('/manager', checkLogin, checkCompany, (req, res, next) => {
-    console.log(req.data)
-    // res.sendFile(path.join(__dirname, 'index.html'))
-    res.json('MANAGER')
-})
+//     if (role >= 1) {
+//         next()
+//     } else {
+//         res.send('Đăng nhập quyền teacher')
+//     }
+// }
+
+// var checkManager = (req, res, next) => {
+//     var role = req.data.role
+//     if (role >= 2) {
+//         next()
+//     } else {
+//         res.send('đăng nhập quyền manager ')
+//     }
+// }
+
+// var checkCompany = (req, res, next) => {
+//     var role = req.data.role
+//     if (role >= 3) {
+//         next()
+//     } else {
+//         res.send('đăng nhập quyền company ')
+//     }
+// }
+
+// // Task
+// app.get('/task', checkLogin, checkStudent, (req, res, next) => {
+//     console.log(req.data)
+//     res.json('ALL Task')
+// })
+
+// // STUDENT
+// app.get('/student', checkLogin, checkTeacher, (req, res, next) => {
+//     console.log(req.data)
+//     res.json('STUDENT')
+// })
+
+// // TEACHER
+// app.get('/teacher', checkLogin, checkManager, (req, res, next) => {
+//     console.log(req.data)
+//     res.json('TEACHER')
+// })
+
+// // MANAGER
+// app.get('/manager', checkLogin, checkCompany, (req, res, next) => {
+//     console.log(req.data)
+//     // res.sendFile(path.join(__dirname, 'index.html'))
+//     res.json('MANAGER')
+// })
 
 
 
